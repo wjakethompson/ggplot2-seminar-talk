@@ -1,0 +1,362 @@
+---
+title: "Introduction to ggplot2"
+author: "Jake Thompson"
+date: "October 3, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What is ggplot2?
+
+ggplot2 is a data visualization package written by [Hadley Wickham](http://www.twitter.com/hadleywickham) that uses the "grammar of graphics." The grammar of graphics provides a consistent way to describe the components of graph, allowing us to move beyond specific types of plots (e.g., boxplot, scatterplot, etc.) to different elements that compose the plot. As the name would imply, the grammar of graphics is a language we can use to describe and build visualizations.
+
+Today we'll be using data on US breweries (yay beer!) to explore some of ggplot2's capabilities. First, we will install the packages we will need.
+
+```{r packages, message = FALSE}
+# install.packages("devtools")
+# install.packages("knitr")
+# install.packages("maps")
+# devtools::install_github("hadley/ggplot2")
+# devtools::install_github("hadley/dplyr")
+# devtools::install_github("hadley/purrr")
+# devtools::install_github("hadley/tidyr")
+# devtools::install_github("hrbrmstr/statebins")
+
+library(ggplot2)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(knitr)
+library(maps)
+library(statebins)
+```
+
+## The dataset
+
+The dataset contains the information on breweries across the United States scraped from [beer advocate](https://www.beeradvocate.com/). Information on the breweries includes the brewery name, brewery rating, the number of reviews, the average rating of their beers, the number of beers they serve, and location information.
+
+```{r data}
+load("all_breweries.RData")
+all_breweries
+```
+
+## Making a plot
+
+Let's look at the relationship between the brewery's overall rating and the number of beers they serve.
+
+```{r scatterplot}
+brew_plot <- all_breweries %>%
+  filter(!is.na(brewery_rating), !is.na(num_beers),
+    state %in% c("Kansas", "Oklahoma", "Missouri", "Missouri", "Iowa",
+      "Nebraska", "Colorado"),
+    num_beers < 400)
+
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating))
+```
+
+`ggplot()` initializes a blank plot, and then layers (geoms) are added to complete the plot. For example, `geom_point()` adds points to create a scatterplot. In the geom call, the user specifies which variable map to the x- and y-axes. We can create a general form all ggplot2 graphics:
+
+```{r general_form, eval = FALSE}
+ggplot(data = <DATA>) +
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+```
+
+## Aesthetic mappings
+
+```{r aesthetics}
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating, color = type))
+
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating, shape = type))
+
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating, size = type))
+
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating), color = "blue")
+```
+
+Inside of the `aes()` command, ggplot2 maps the aesthetic to a variable in your dataset and creates a legend. Outside of the `aes()` command, aesthetics can be fixed to a specific value. For a list of aesthetics that each geom can use, see the help page (e.g., `?geom_point`).
+
+## Layering geoms
+
+```{r layering}
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating))
+
+ggplot(data = brew_plot) +
+  geom_point(mapping = aes(x = num_beers, y = brewery_rating)) +
+  geom_smooth(mapping = aes(x = num_beers, y = brewery_rating))
+```
+
+This can start to get redundant, so we can set global mappings.
+
+```{r global_map}
+ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
+  geom_point() +
+  geom_smooth()
+```
+
+You can also set local mappings that only apply to a specific layer.
+
+```{r local_aes}
+ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
+  geom_point(mapping = aes(color = type)) +
+  geom_smooth()
+```
+
+We can similarly define which data should be used for a single geom.
+
+```{r local_data}
+ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
+  geom_point(mapping = aes(color = type)) +
+  geom_smooth(data = filter(brew_plot, type == "Brewery, Eatery"))
+```
+
+We can also show each subset individually using `facet_wrap()`.
+
+```{r facet}
+ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
+  geom_point(mapping = aes(color = type)) +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~ type)
+```
+
+## Common geoms
+
+```{r common_geom}
+ggplot(data = brew_plot) +
+  geom_bar(mapping = aes(x = state))
+
+ggplot(data = brew_plot) +
+  geom_bar(mapping = aes(x = state, fill = type))
+
+ggplot(data = brew_plot) +
+  geom_bar(mapping = aes(x = state, fill = type), position = position_dodge())
+
+ggplot(data = brew_plot) +
+  geom_density(mapping = aes(x = num_beers))
+
+ggplot(data = brew_plot, mapping = aes(x = num_beers)) +
+  geom_histogram(mapping = aes(y = ..density..), binwidth = 10,
+    alpha = 0.6, color = "black", fill = "black") +
+  geom_density(fill = "red", color = "black", alpha = 0.3)
+
+ggplot(data = brew_plot) +
+  geom_boxplot(mapping = aes(x = state, y = num_beers))
+
+ggplot(data = brew_plot) +
+  geom_violin(mapping = aes(x = state, y = num_beers))
+```
+
+## Formatting ggplot2
+
+**Anything** you see in a ggplot2 visualization can be altered. Most of this will occur through the `theme()` function, but labels occur in `scale_` or `labs`. There is [extensive documentation](http://docs.ggplot2.org/current/) on what all can be altered. And chances are if there is something you want to change, someone has had the same question, and [asked it online](http://stackoverflow.com/questions/tagged/ggplot2).
+
+```{r formatting, message = FALSE}
+ggplot(brew_plot) +
+  geom_violin(mapping = aes(x = state, y = num_beers, fill = state)) +
+  scale_x_discrete(labels = c("CO", "IA", "KS", "MO", "NE", "OK")) +
+  scale_fill_brewer(type = "qual", palette = "Set3") +
+  labs(x = "State", y = "Number of Beers",
+    title = "How many beers do breweries make?",
+    subtitle = "Few breweries sell over 50 beers",
+    caption = "Data from beeradvocate.com") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic"),
+        plot.caption = element_text(size = 6),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 10),
+        axis.title.x = element_text(margin = margin(5, 0, 5, 0)),
+        axis.title.y = element_text(margin = margin(0, 5, 0, 0)),
+        legend.position = "none")
+
+ggsave("Output/Violin_Plot.pdf")
+```
+
+## Saving graphics
+
+Notice that we can also save plots using the `ggsave` function. This can work in conjunction with other packages from the [tidyverse](https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/), such as `purrr`. Here we, save many plots to a list, and then use `pwalk` to save them all at once.
+
+```{r saving, message = FALSE}
+plot_list <- unique(brew_plot$state) %>% list_along()
+names(plot_list) <- unique(brew_plot$state)
+for (i in seq_along(plot_list)) {
+  plot <- ggplot(data = filter(brew_plot, state == names(plot_list)[i]),
+                 mapping = aes(x = num_beers)) +
+    geom_histogram(mapping = aes(y = ..density..), binwidth = 10,
+    alpha = 0.6, color = "black", fill = "black") +
+  geom_density(fill = "red", color = "black", alpha = 0.3) +
+    labs(x = "Number of Beers", y = "Density",
+      title = "Distribution of Number of Beers Sold",
+      subtitle = paste0("Breweries in ", names(plot_list)[i]),
+      caption = "Data from beeradvocate.com") +
+    theme_bw() +
+    theme(plot.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic"),
+        plot.caption = element_text(size = 6),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 10),
+        axis.title.x = element_text(margin = margin(5, 0, 5, 0)),
+        axis.title.y = element_text(margin = margin(0, 5, 0, 0)),
+        legend.position = "none")
+  
+  plot_list[[i]] <- plot
+}
+
+filenames <- paste0(names(plot_list), ".pdf")
+pwalk(list(filenames, plot_list), ggsave, path = paste0(getwd(), "/Output/"))
+```
+
+
+## Endless possibilities
+
+This is only a small sampling of what ggplot2 can do. For example, you can map geospatial locations.
+
+```{r mapping, echo = FALSE, message = FALSE}
+# Our filtered sample
+states <- map_data("state") %>%
+  filter(region %in% c("kansas", "oklahoma", "missouri", "iowa", "nebraska",
+    "colorado"))
+brew_loc <- brew_plot %>%
+  #filter(!(state %in% c("Alaska", "Hawaii"))) %>%
+  group_by(full_city, city_lon, city_lat) %>%
+  summarize(n = n()) %>%
+  #filter(n >= 5) %>%
+  arrange(desc(n))
+
+ggplot() +
+  geom_polygon(data = states, mapping = aes(x = long, y = lat, group = group),
+               color = "white") +
+  geom_point(data = brew_loc, mapping = aes(x = city_lon, y = city_lat,
+             size = n), color = "red", alpha = 0.5) +
+  scale_size_area(name = "Number of\nBreweries") +
+  coord_map() +
+  labs(title = "Central US Breweries") +
+  theme_void() +
+  theme(plot.title = element_text(size = 12, face = "bold",
+                                  margin = margin(3, 0, 0, 0)),
+        legend.position = "bottom",
+        legend.title = element_text(size = 8))
+
+# The whole US
+states <- map_data("state")
+brew_loc <- all_breweries %>%
+  filter(!(state %in% c("Alaska", "Hawaii"))) %>%
+  group_by(full_city, city_lon, city_lat) %>%
+  summarize(n = n()) %>%
+  filter(n >= 3) %>%
+  arrange(desc(n))
+
+ggplot() +
+  geom_polygon(data = states, mapping = aes(x = long, y = lat, group = group),
+               color = "white") +
+  geom_point(data = brew_loc, mapping = aes(x = city_lon, y = city_lat,
+             size = n), color = "red", alpha = 0.5) +
+  scale_size_area(name = "Number of\nBreweries", breaks = seq(10, 60, 10)) +
+  coord_map() +
+  labs(title = "All US Breweries") +
+  theme_void() +
+  theme(plot.title = element_text(size = 12, face = "bold",
+                                  margin = margin(3, 0, 0, 0)),
+        legend.position = "bottom",
+        legend.title = element_text(size = 8)) +
+  guides(size = guide_legend(nrow = 1))
+```
+
+ggplot2 also has a strong online community of contributers that have written packages to [extend the capabilities](http://www.ggplot2-exts.org/gallery/) of ggplot2. For example, the `gganimate` package allows you to make animated visualizations.
+
+```{r gganimate, fig.show = "animate", eval = FALSE}
+# devtools::install_github("dgrtwo/gganimate")
+library(gganimate)
+
+# The whole US
+states <- map_data("state")
+brew_loc <- all_breweries %>%
+  filter(!(state %in% c("Alaska", "Hawaii"))) %>%
+  group_by(state) %>%
+  summarize(num_brewery = n(), mean_rating = mean(brewery_rating, na.rm = TRUE),
+    mean_beeravg = mean(beer_avg, na.rm = TRUE)) %>%
+  ungroup() %>%
+  gather(Measure, Value, num_brewery:mean_beeravg)
+
+p <- ggplot() +
+  geom_polygon(data = states, mapping = aes(x = long, y = lat, group = group),
+               color = "white") +
+  geom_point(data = brew_loc, mapping = aes(x = city_lon, y = city_lat,
+             size = ), color = "red", alpha = 0.5) +
+  scale_size_area(name = "Number of\nBreweries", breaks = seq(10, 60, 10)) +
+  coord_map() +
+  labs(title = "All US Breweries") +
+  theme_void() +
+  theme(plot.title = element_text(size = 12, face = "bold",
+                                  margin = margin(3, 0, 0, 0)),
+        legend.position = "bottom",
+        legend.title = element_text(size = 8)) +
+  guides(size = guide_legend(nrow = 1))
+
+p <- ggplot(data = beermaterials, mapping = aes(x = Month, y = Hops_extracts)) +
+  geom_point(alpha = 0.7) +
+  geom_point(mapping = aes(frame = Year), color = "red") +
+  labs(x = "Month", y = "Hops Extracts (lbs.)") +
+  theme_bw() +
+  theme(axis.text = element_text(size = 8),
+        axis.title = element_text(size = 10),
+        axis.title.x = element_text(margin = margin(5, 0, 5, 0)),
+        axis.title.y = element_text(margin = margin(0, 5, 0, 0)))
+
+gg_animate(p)
+gg_animate(p, "animation.gif")
+```
+
+## Endless possibilities
+
+```{r pirate, echo = FALSE, eval = FALSE}
+set.seed(20161003)
+data <- data_frame(Time_1 = rpois(300, 3), Time_2 = rpois(300, 6),
+  Time_3 = rpois(300, 10), Time_4 = rpois(300, 15),
+  Time_5 = rpois(300, 18)) %>%
+  gather(Time, Value)
+sum_data <- data %>%
+  group_by(Time) %>%
+  summarize(Mean = mean(Value), SD = sd(Value)) %>%
+  mutate(LB = Mean - SD, UB = Mean + SD) %>%
+  ungroup()
+ggplot(mapping = aes(color = Time, fill = Time)) +
+  geom_bar(data = sum_data, aes(x = Time, y = Mean), stat = "identity", alpha = 0.2,
+    color = NA) +
+  geom_boxplot(data = sum_data, aes(x = Time, y = Mean, ymin = LB, lower = LB,
+    middle = Mean, upper = UB, ymax = UB), stat = "identity", alpha = 0.4) +
+  geom_violin(data = data, aes(x = Time, y = Value), fill = NA) +
+  geom_jitter(data = data, aes(x = Time, y = Value), height = 0, width = 0.15,
+    alpha = 0.2) +
+  scale_x_discrete(labels = c("Time 1", "Time 2", "Time 3", "Time 4",
+    "Time 5")) +
+  scale_y_continuous(breaks = seq(0, 50, 5)) +
+  labs(x = NULL, y = "Score", title = "Pirate Plot") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 12),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 10),
+        axis.title.x = element_text(margin = margin(5, 0, 5, 0)),
+        axis.title.y = element_text(margin = margin(0, 5, 0, 0)),
+        legend.position = "none",
+        panel.grid.major.x = element_blank())
+```
+
+
+## Other Resources
+* [Everything ggplot2](http://docs.ggplot2.org/current/)
+* [ggplot2: Elegant graphics for data analysis](https://github.com/hadley/ggplot2-book) (Hadley Wickham)
+* [R for Data Science: Data Visualization](http://r4ds.had.co.nz/data-visualisation.html) (Hadley Wickham & Garrett Grolemund)
+* [ggplot2 extensions](http://www.ggplot2-exts.org/gallery/)
+* ggplot2 vs. base graphics
+    + [Use base graphics!](http://simplystatistics.org/2016/02/11/why-i-dont-use-ggplot2/) (Jeff Leek)
+    + [Use ggplot2!](http://varianceexplained.org/r/why-I-use-ggplot2/) (David Robinson)
+    + [Comparing ggplot2 and base graphics](http://flowingdata.com/2016/03/22/comparing-ggplot2-and-r-base-graphics/) (Nathan Yau)
