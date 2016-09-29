@@ -2,7 +2,7 @@
 title: "Data Visualization Using ggplot2"
 author: "Jake Thompson"
 date: "October 3, 2016"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include = FALSE}
