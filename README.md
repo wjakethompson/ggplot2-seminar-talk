@@ -12,21 +12,23 @@ Today we'll be using data on US breweries (yay beer!) to explore some of ggplot2
 
 ``` r
 # install.packages("devtools")
-# install.packages("knitr")
-# install.packages("maps")
 # devtools::install_github("hadley/ggplot2")
 # devtools::install_github("hadley/dplyr")
 # devtools::install_github("hadley/purrr")
 # devtools::install_github("hadley/tidyr")
 # devtools::install_github("hadley/forcats")
+# devtools::install_github("hadley/readr")
+# devtools::install_github("dgrtwo/gganimate")
+# install.packages("maps")
 
 library(ggplot2)
 library(dplyr)
 library(purrr)
 library(tidyr)
 library(forcats)
-library(maps)
+library(readr)
 library(gganimate)
+library(maps)
 ```
 
 The dataset
@@ -35,7 +37,7 @@ The dataset
 The dataset contains the information on breweries across the United States scraped from [beer advocate](https://www.beeradvocate.com/). Information on the breweries includes the brewery name, brewery rating, the number of reviews, the average rating of their beers, the number of beers they serve, and location information.
 
 ``` r
-load("all_breweries.RData")
+all_breweries <- read_csv("all_breweries.csv", col_types = "cnnnnccccnncnn")
 all_breweries
 #> # A tibble: 5,686 × 14
 #>                  brewery_name brewery_rating num_reviews beer_avg
