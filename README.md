@@ -153,10 +153,8 @@ ggplot(data = brew_plot) +
 
 ``` r
 
-ggplot(data = brew_plot, mapping = aes(x = num_beers)) +
-  geom_histogram(mapping = aes(y = ..density..), binwidth = 10,
-    alpha = 0.6, color = "black", fill = "black") +
-  geom_density(fill = "red", color = "black", alpha = 0.3)
+ggplot(data = brew_plot) +
+  geom_histogram(mapping = aes(x = num_beers), binwidth = 10)
 ```
 
 ![](Output/common_geom-5.png)
@@ -197,7 +195,26 @@ ggplot(data = brew_plot) +
 
 ![](Output/layering-2.png)
 
-This can start to get redundant, so we can set global mappings.
+``` r
+
+ggplot(data = brew_plot) +
+  geom_histogram(mapping = aes(x = num_beers), binwidth = 10) +
+  geom_density(mapping = aes(x = num_beers), alpha = 0.4, fill = "red")
+```
+
+![](Output/layering-3.png)
+
+Not all geoms are on the same scale! When using `geom_bar`, ggplot2 automatically calculates the count (i.e., the nubmer of occurances for each bin), and plots that on the y-axis. We can override this and make a different calculation for the y-axis.
+
+``` r
+ggplot(data = brew_plot) +
+  geom_histogram(mapping = aes(x = num_beers, y = ..density..), binwidth = 10) +
+  geom_density(mapping = aes(x = num_beers), alpha = 0.4, fill = "red")
+```
+
+![](Output/alter_geom-1.png)
+
+Mapping in every geom can start to get redundant, so instead we can set global mappings.
 
 ``` r
 ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
@@ -211,13 +228,22 @@ ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
 You can also set local mappings that only apply to a specific layer.
 
 ``` r
+ggplot(data = brew_plot, mapping = aes(x = num_beers)) +
+  geom_histogram(mapping = aes(y = ..density..), binwidth = 10) +
+  geom_density(alpha = 0.4, fill = "red")
+```
+
+![](Output/local_aes-1.png)
+
+``` r
+
 ggplot(data = brew_plot, mapping = aes(x = num_beers, y = brewery_rating)) +
   geom_point(mapping = aes(color = type)) +
   geom_smooth()
 #> `geom_smooth()` using method = 'loess'
 ```
 
-![](Output/local_aes-1.png)
+![](Output/local_aes-2.png)
 
 We can similarly define which data should be used for a single geom.
 
@@ -269,15 +295,40 @@ ggplot(brew_plot) +
 
 ![](Output/formatting-1.png)
 
-``` r
-
-ggsave("Saved Images/Violin_Plot.png")
-```
-
 Saving graphics
 ---------------
 
-Notice that we can also save plots using the `ggsave` function. This can work in conjunction with other packages from the [tidyverse](https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/), such as `purrr`. Here we, save many plots to a list, and then use `pwalk` to save them all at once.
+We can also save plots using the `ggsave` function. By default this saves the last plot you created.
+
+``` r
+ggsave("Saved Images/Violin_Plot.png")
+```
+
+However you can also save your plots like you variable values and save them later.
+
+``` r
+p <- ggplot(data = brew_plot, mapping = aes(x = num_beers)) +
+    geom_histogram(mapping = aes(y = ..density..), binwidth = 10,
+    alpha = 0.6, color = "black", fill = "black") +
+  geom_density(fill = "red", color = "black", alpha = 0.3) +
+    labs(x = "Number of Beers", y = "Density",
+      title = "Distribution of Number of Beers Sold",
+      subtitle = paste0("All Breweries"),
+      caption = "Data from beeradvocate.com") +
+    theme_bw() +
+    theme(plot.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic"),
+        plot.caption = element_text(size = 6),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 10),
+        axis.title.x = element_text(margin = margin(5, 0, 5, 0)),
+        axis.title.y = element_text(margin = margin(0, 5, 0, 0)),
+        legend.position = "none")
+
+ggsave("Saved Images/All_States.png", plot = p)
+```
+
+This can work in conjunction with other packages from the [tidyverse](https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/), such as `purrr`. Here we make the same plot as above, except for each state individually. We can save each of these plots in a list, and then use `pwalk` to save them all at once.
 
 ``` r
 plot_list <- unique(brew_plot$state) %>% list_along()
