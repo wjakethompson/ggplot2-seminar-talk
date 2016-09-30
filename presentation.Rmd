@@ -49,23 +49,23 @@ ggplot2 is a data visualization package written by [Hadley Wickham](http://www.t
 
 Today we'll be using data on US breweries (yay beer!) to explore some of ggplot2's capabilities. First, we will install the packages we will need.
 
-```{r talk_packages, message = FALSE}
+```{r packages, message = FALSE}
 # install.packages("devtools")
-# install.packages("knitr")
-# install.packages("maps")
 # devtools::install_github("hadley/ggplot2")
 # devtools::install_github("hadley/dplyr")
 # devtools::install_github("hadley/purrr")
 # devtools::install_github("hadley/tidyr")
 # devtools::install_github("hadley/forcats")
+# devtools::install_github("dgrtwo/gganimate")
+# install.packages("maps")
 
 library(ggplot2)
 library(dplyr)
 library(purrr)
 library(tidyr)
 library(forcats)
-library(maps)
 library(gganimate)
+library(maps)
 ```
 
 
