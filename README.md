@@ -1,7 +1,7 @@
 Data Visualization Using ggplot2
 ================
 Jake Thompson
-October 3, 2016
+October 10, 2016
 
 What is ggplot2?
 ----------------
