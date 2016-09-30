@@ -223,8 +223,8 @@ ggplot(brew_plot) +
   scale_x_discrete(labels = c("CO", "IA", "KS", "MO", "NE", "OK")) +
   scale_fill_brewer(type = "qual", palette = "Set3") +
   labs(x = "State", y = "Number of Beers",
-    title = "How many beers do breweries make?",
-    subtitle = "Few breweries sell over 50 beers",
+    title = "How are breweries rated in each state?",
+    subtitle = "Most breweries are around 4 stars",
     caption = "Data from beeradvocate.com") +
   theme_bw() +
   theme(plot.title = element_text(size = 12, face = "bold"),
