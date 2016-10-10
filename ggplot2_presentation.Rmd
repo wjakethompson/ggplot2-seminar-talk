@@ -440,3 +440,11 @@ gg_animate(p, interval = 2)
     + [Use base graphics!](http://simplystatistics.org/2016/02/11/why-i-dont-use-ggplot2/) (Jeff Leek)
     + [Use ggplot2!](http://varianceexplained.org/r/why-I-use-ggplot2/) (David Robinson)
     + [Comparing ggplot2 and base graphics](http://flowingdata.com/2016/03/22/comparing-ggplot2-and-r-base-graphics/) (Nathan Yau)
+
+
+## Session Information
+
+```{r}
+devtools::session_info()
+```
+
